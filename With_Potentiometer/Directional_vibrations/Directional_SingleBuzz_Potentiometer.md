@@ -1,55 +1,239 @@
-This prototype is designed to create spatial haptic sensations using an array of vibration motors controlled by an Arduino. By grouping motors and firing them in specific sequences, the system can simulate directional movement (Up, Down, Left, and Right).
+# Sequential Directional Vibration Motor Controller
 
-This is particularly useful for tactile navigation aids, wearable haptic vests, or immersive sensory research.
+Arduino sketch for controlling vibration motors in sequential patterns across four directions (up, down, left, right) with adjustable intensity control via potentiometer.
 
-Features:
-Intuitive Serial Control: Control the "flow" of vibration simply by typing directions into your computer.
+## Hardware Requirements
 
-Dynamic Intensity: Integrated potentiometer support allows you to adjust the vibration strength in real-time.
+- Arduino board (Nano, Uno, Mega, etc.)
+- 5x vibration motors
+- Motor driver circuit (transistors or motor driver board recommended)
+- 1x potentiometer (10kΩ recommended)
+- Appropriate power supply for motors
 
-Structured Motor Groups: Uses a 2D array architecture to manage 6 different motor points organized into vertical and horizontal axes.
+## Pin Configuration
 
-Smooth Transitions: Built-in pulse and delay logic ensures the user can distinctively feel the direction of the sequence.
+### Vertical Motor Groups (Up/Down Control)
+- **Group 1 (Top)**: Pins 3, 5 (2 motors)
+- **Group 2 (Bottom)**: Pin 12 (1 motor, duplicated in array)
 
-Hardware Setup
-Wiring Diagram
-The system expects a potentiometer on A0 and motors connected to the following PWM-capable pins:
+### Horizontal Motor Groups (Left/Right Control)
+- **Left Group**: Pin 9 (1 motor)
+- **Right Group**: Pin 6 (1 motor)
 
-Vertical Array:
+### Control Input
+- **Potentiometer**: Analog Pin A0
 
-Top: Pins 3, 5
+## Features
 
-Middle: Pins 6, 9
+- **Sequential Motor Control**: Motors activate in sequence to create directional movement sensation
+- **4-Direction Control**: Up, Down, Left, Right via Serial commands
+- **Intensity Control**: Real-time speed/intensity adjustment via potentiometer (0-255)
+- **Directional Wave Patterns**: 
+  - **Up**: Motors fire bottom-to-top
+  - **Down**: Motors fire top-to-bottom
+  - **Left**: Motors fire right-to-left
+  - **Right**: Motors fire left-to-right
+- **Continuous Operation**: Selected pattern repeats until direction is changed
 
-Bottom: Pins 12, 12
+## Setup
 
-Horizontal Array:
+1. Connect vibration motors to the specified pins through appropriate motor driver circuitry
+2. Connect potentiometer to analog pin A0:
+   - One outer pin to 5V
+   - Other outer pin to GND
+   - Middle pin to A0
+3. Upload the sketch to your Arduino
+4. Open Serial Monitor (9600 baud)
 
-Left Side: Pin 9
+## Usage
 
-Right Side: Pin 6
+### Controlling Direction
 
-[!NOTE] Since vibration motors often draw more current than an Arduino pin can safely provide, it is highly recommended to use a transistor (like the PN2222) or a Darlington Array (ULN2003) to drive the motors.
+Enter one of the following commands in the Serial Monitor:
 
-Operating Instructions
-Initialize: Power your Arduino and open the Serial Monitor (set to 9600 Baud).
+```
+up    - Activates motors in bottom-to-top sequence
+down  - Activates motors in top-to-bottom sequence
+left  - Activates motors in right-to-left sequence
+right - Activates motors in left-to-right sequence
+```
 
-Adjust Intensity: Turn the potentiometer to set your desired vibration strength.
+### Adjusting Intensity
 
-Command the Direction:
+Turn the potentiometer to adjust vibration intensity:
+- **Minimum** (fully counter-clockwise): Low intensity (weak vibration)
+- **Maximum** (fully clockwise): High intensity (strong vibration)
 
-Type up to feel the vibration move from your feet/bottom toward your head/top.
+### Sequential Pattern Behavior
 
-Type down to reverse the flow.
+Each direction creates a wave-like sensation:
 
-Type left or right for horizontal patterns.
+**UP Direction:**
+```
+Step 1: Bottom motors (pin 12) activate
+        ↓ 300ms pulse
+Step 2: Top motors (pins 3, 5) activate
+        ↓ 300ms pulse
+        ↓ 800ms delay
+Repeat...
+```
 
-Customization
-You can easily tune the "speed" of the sensation by changing these values at the top of the code:
+**DOWN Direction:**
+```
+Step 1: Top motors (pins 3, 5) activate
+        ↓ 300ms pulse
+Step 2: Bottom motors (pin 12) activate
+        ↓ 300ms pulse
+        ↓ 800ms delay
+Repeat...
+```
 
-C++
+**LEFT Direction:**
+```
+Step 1: Right motor (pin 6) activates
+        ↓ 300ms pulse
+Step 2: Left motor (pin 9) activates
+        ↓ 300ms pulse
+        ↓ 800ms delay
+Repeat...
+```
 
-const int pulseDuration = 300;      // How long each group vibrates
-const int delayBetweenGroups = 1000; // Time to wait before the next sweep
-A Note on Pin 12
-In your current code, the "Bottom" group uses Pin 12 twice. If you intend to have two distinct motors for the bottom group, you might want to move one to another PWM-capable pin (like Pin 10 or 11) to ensure you have full control over the intensity.
+**RIGHT Direction:**
+```
+Step 1: Left motor (pin 9) activates
+        ↓ 300ms pulse
+Step 2: Right motor (pin 6) activates
+        ↓ 300ms pulse
+        ↓ 800ms delay
+Repeat...
+```
+
+## Serial Monitor Output
+
+The Serial Monitor displays the active motor groups:
+
+```
+Direction set to: UP
+Up: Group 1, Motor 12
+Up: Group 0, Motor 3
+Up: Group 0, Motor 5
+```
+
+## Code Parameters
+
+You can modify these values in the code to customize behavior:
+
+```cpp
+pulseDuration = 300;         // Duration each motor group vibrates (ms)
+delayBetweenGroups = 800;    // Delay between complete sequences (ms)
+```
+
+### Timing Diagram
+
+```
+|<-- pulseDuration -->|<-- delayBetweenGroups -->|
+    Motor Group 1          Motor Group 2              Wait     Repeat
+    ████████████           ████████████           ____________   ...
+```
+
+## How It Works
+
+1. **Direction Selection**: User sends serial command (up/down/left/right)
+2. **Intensity Reading**: Potentiometer value is continuously read and mapped to 0-255
+3. **Sequential Activation**: Motor groups activate one at a time in the chosen direction
+4. **Pattern Repeat**: After all groups have fired, the system waits and repeats
+
+### Direction Logic
+
+- **UP**: Groups activate in reverse order (bottom to top)
+- **DOWN**: Groups activate in forward order (top to bottom)
+- **LEFT**: Groups activate in reverse order (right to left)
+- **RIGHT**: Groups activate in forward order (left to right)
+
+## Customization
+
+### Adding More Motor Groups
+
+To add a middle group for vertical control:
+
+```cpp
+const int vertical_motorPins[3][2] = {
+  {3, 5},    // "top" group  
+  {6, 9},    // "middle" group (uncomment this line)
+  {12, 12}   // "bottom" group
+};
+
+const int vertical_groups = 3;  // Update group count
+```
+
+### Adjusting Timing
+
+```cpp
+const int pulseDuration = 200;       // Faster pulses
+const int delayBetweenGroups = 500;  // Shorter delay between sequences
+```
+
+## Safety Notes
+
+⚠️ **Important Safety Information**:
+- **Never connect motors directly to Arduino pins** - use transistors or motor driver boards
+- Ensure adequate current capacity for all motors
+- Use a separate power supply for motors if needed
+- Add flyback diodes across motor terminals to protect against voltage spikes
+- Check motor current draw doesn't exceed driver ratings
+
+## Recommended Circuit Components
+
+- **NPN Transistors**: 2N2222 or equivalent (one per motor)
+- **Diodes**: 1N4001 or equivalent (one per motor for flyback protection)
+- **Resistors**: 1kΩ base resistors for transistors
+- **Motor Driver Board**: L293D or L298N (alternative to transistors)
+
+## Example Circuit
+
+```
+Arduino Pin 3 ──→ [1kΩ] ──→ [Transistor Base] ──→ Motor 1 ──→ Power Supply
+                              ↓ (with flyback diode)
+                             GND
+
+Potentiometer:
+   5V ──→ [Outer Pin 1]
+   A0 ──→ [Middle Pin (Wiper)]
+  GND ──→ [Outer Pin 2]
+```
+
+## Troubleshooting
+
+**Motors not vibrating**:
+- Verify motor driver connections
+- Check power supply voltage and current capacity
+- Test individual motors with multimeter
+- Confirm correct pin assignments
+
+**Sequential pattern not working**:
+- Check Serial Monitor baud rate (must be 9600)
+- Verify correct direction command syntax
+- Look for serial output to confirm commands are received
+
+**Weak vibration at full potentiometer**:
+- Check potentiometer wiring
+- Verify potentiometer value is being read (check Serial output)
+- Ensure adequate power supply for motors
+- Check motor driver can handle required current
+
+**Pattern too fast or too slow**:
+- Adjust `pulseDuration` for individual pulse length
+- Adjust `delayBetweenGroups` for overall pattern speed
+
+## Applications
+
+This sequential pattern controller is ideal for:
+- Haptic navigation feedback devices
+- Directional alerts in wearable devices
+- Gaming haptic vests or suits
+- Training/simulation equipment
+- Accessibility/sensory feedback systems
+
+## License
+
+MIT License - feel free to use and modify for your projects.
