@@ -5,7 +5,7 @@ Arduino sketch for controlling vibration motors in four directions with fixed pu
 ## Hardware Requirements
 
 - Arduino board (Uno, Nano, etc.)
-- 5x vibration motors
+- 6x vibration motors
 - Motor driver circuit (transistors or motor driver board recommended)
 - 1x potentiometer (10kΩ recommended)
 - Appropriate power supply for motors
@@ -14,7 +14,7 @@ Arduino sketch for controlling vibration motors in four directions with fixed pu
 
 ### Motor Pins
 - **Up Direction**: Pins 3, 5 (2 motors)
-- **Down Direction**: Pin 12 (1 motor)
+- **Down Direction**: Pin 12 (2 motor)
 - **Right Direction**: Pin 6 (1 motor)
 - **Left Direction**: Pin 9 (1 motor)
 
@@ -47,7 +47,7 @@ Arduino sketch for controlling vibration motors in four directions with fixed pu
 Enter one of the following commands in the Serial Monitor:
 
 - `up` - Activates motors on pins 3 and 5
-- `down` - Activates motor on pin 12
+- `down` - Activates motors on pin 12
 - `left` - Activates motor on pin 9
 - `right` - Activates motor on pin 6
 
